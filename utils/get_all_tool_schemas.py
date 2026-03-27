@@ -1,14 +1,13 @@
 from tools.registry import tools
-def get_all_tool_schemas():
-    collector_list = []
+def get_all_tool_schemas() -> list:
+    tool_schemas = []
 
     for _, tool in tools.items():
-        res = tool.to_schema()
-        collector_list.append(res)
-    return collector_list
+        schema = tool.to_schema()
+        tool_schemas.append(schema)
+    return tool_schemas
 
-list1 = get_all_tool_schemas()
-print('list1', list1)
+
 
 '''
 response = 
