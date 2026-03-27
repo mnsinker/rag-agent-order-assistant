@@ -1,31 +1,41 @@
 from models.refund import RefundEligibility
 from tools.registry import tools
 from utils.make_response import make_response
-from agents.mock_llm import mock_llm
+from llm.client import call_llm
 from utils.get_all_tool_schemas import get_all_tool_schemas
 from errors.validation import ValidationError
 from errors.tool import ExecutionError
+from utils.parse_llm_ouput import safe_parse_llm_output
+
 
 
 def agent(query: str) -> dict:
     print('[QUERY]: ', query)
     # step1. 决策: 用哪个tool
     tool_schemas = get_all_tool_schemas()
-    tool_call = mock_llm(query, tool_schemas)
-    print('[TOOL_CALL]: ', tool_call)
+    llm_raw = call_llm(query, tool_schemas)
+    tool_call = safe_parse_llm_output(llm_raw)
 
+    print('[TOOL_CALL]: ', tool_call)
+    if not tool_call:
+        return make_response(False, None, 'LLM output parse failed')
+    if 'steps' not in tool_call or not isinstance(tool_call['steps'], list):
+        return make_response(False, None, 'LLM output structure is invalid')
 
     # step2. 路由
     # 2.1 获得每个tool的tool_obj
     tool_results = []
     for step in tool_call["steps"]:
+        if 'tool' not in step or 'args' not in step:
+            return make_response(False, None, 'invalid step format')
         tool_name = step['tool']
         tool_args = step['args']
         print(f'[TOOL] {tool_name} {tool_args}')
         tool_obj = tools.get(tool_name)
         if not tool_obj:
             return make_response(False, None, 'no matching tool')
-
+        if not isinstance(tool_args, dict):
+            return make_response(False, None, 'invalid args format')
 
         # step3. 调工具
         # 3.1 准备参数
@@ -61,5 +71,3 @@ def agent(query: str) -> dict:
 
 response = agent('订单456已发货吗?')
 print('response: ', response)
-
-
