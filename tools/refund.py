@@ -1,3 +1,4 @@
+from models.refund import RefundExecutionResult
 from services.order_service import get_order_summary
 from models.refund import RefundEligibility
 from errors.validation import ValidationError
@@ -29,3 +30,9 @@ before:
         return make_response(True, RefundResult(False, "product is more than 7 days"))
     return make_response(True, RefundResult(True, "eligible for refund"))
 '''
+
+
+def create_refund(order_id: str, eligibility: RefundEligibility | None = None) -> RefundExecutionResult:
+    if eligibility and not eligibility.refundable:
+        return RefundExecutionResult(False, 'not eligible to refund')
+    return RefundExecutionResult(True, 'refund initiated')

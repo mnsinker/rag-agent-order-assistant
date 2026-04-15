@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 
 @dataclass
-class OrderSummary():
+class OrderSummary:
     order_id: str
+    user_id: str
     days: int
     shipped: bool
     custom: bool
+    amount: int
 

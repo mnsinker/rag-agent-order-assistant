@@ -1,18 +1,19 @@
 from errors.base import ToolError
-from tools.check_refund import check_refund
 from utils.to_json_type import to_json_type
 from errors.validation import ValidationError
 from errors.tool import ExecutionError
 
 class Tool:
-    def __init__(self, name, description, func, **kwargs):
+    def __init__(self, name, description, func, dependency_args: dict=None, output_type=None, **kwargs):
         self.name = name
         self.description = description
         self.func = func
-        self.args = kwargs # 创建tool_obj时, 定义所需的参数
+        self.llm_args = kwargs # 创建tool_obj时, 定义所需的参数
+        self.dependency_args = dependency_args or {}
+        self.output_type = output_type
     def run(self, **param): # 调方法时, agent传入的参数
         # 1. validate params' data type
-        for required_arg, required_type in self.args.items():
+        for required_arg, required_type in self.llm_args.items():
             if required_arg not in param:
                 raise ValidationError(message=f'missing param: {required_arg}')
             value = param[required_arg]
@@ -37,8 +38,14 @@ class Tool:
         response['parameters'] = {}
         response['parameters']['type'] = 'object'
         response['parameters']['properties'] = {
-            required_arg: {"type": to_json_type(required_type)} for required_arg, required_type in self.args.items()
+            required_arg: {"type": to_json_type(required_type)} for required_arg, required_type in self.llm_args.items()
         }
-        response['parameters']['required'] = list(self.args.keys())
+        response['parameters']['required'] = list(self.llm_args.keys())
         return response
+
+    def get_dependencies(self):
+        return self.dependency_args
+
+    def get_output_type(self):
+        return self.output_type
 
