@@ -8,7 +8,7 @@ from tools.registry import tools
 from errors.tool import ExecutionError
 from validators.llm_validator import validate_tool_args
 from validators.parse_llm_ouput import safe_parse_llm_output
-from validators.resolver import resolve_args
+from validators.resolver import resolve_args, apply_param_correction
 from validators.validator import validate_args_from_llm, validate_params, validate_structure, validate_tool_exists
 from llm.responder import generate_final_result
 audit = AuditLogger()
@@ -84,6 +84,7 @@ def agent(query: str) -> dict:
             # 3️⃣ 如无deps: args 处理
             resolved_args = resolve_args(resolved_tool, step_args)
             params = fill_args_from_context(resolved_tool, resolved_args, tool_results)
+            params = apply_param_correction(query, params, resolved_tool)
             validate_params(resolved_tool, params)
 
             # 4️⃣ run

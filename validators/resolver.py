@@ -2,6 +2,7 @@ import difflib
 from errors.validation import ValidationError
 from tools.base import Tool
 from tools.registry import tools
+from utils.extractors import extract_order_id
 
 def resolve_tool(name: str) -> Tool | None:
     # 1. exact match
@@ -49,4 +50,11 @@ def resolve_args(resolved_tool:Tool, step_args: dict) -> dict:
             raise ValidationError(f"[WARN] unknown param: {arg_name}")
 
     return resolved_args
+
+
+def apply_param_correction(query: str, params: dict, resolved_tool: Tool) -> dict:
+    if "order_id" in resolved_tool.llm_args and not params.get("order_id"):     # 需要 "order_id', 但params里又没有
+        if extracted := extract_order_id(query):
+            params["order_id"] = extracted
+    return params
 
