@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 @dataclass
-class OrderSummary:
+class OrderSummary: # Model (数据结构)
     order_id: str
     user_id: str
     days: int

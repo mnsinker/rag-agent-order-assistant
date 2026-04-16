@@ -14,7 +14,7 @@ from llm.responder import generate_final_result
 audit = AuditLogger()
 
 
-def decide_with_retry(query: str, tool_schemas: list, max_retry: int=2) -> dict | None:
+def decide_with_retry(query: str, tool_schemas: list, max_retry: int=1) -> dict | None:
     error_message = None
     tool_call = {}
     for i in range(max_retry):

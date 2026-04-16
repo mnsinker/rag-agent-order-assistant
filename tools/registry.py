@@ -1,4 +1,5 @@
 from models.coupon import CouponEligibility
+from models.credit import CreditScore
 from models.order import OrderSummary
 from models.refund import RefundEligibility, RefundExecutionResult
 from models.risk import RiskResult
@@ -6,6 +7,7 @@ from models.shipping import ShippingResult
 from models.user import UserProfile
 from models.user_history import UserHistory
 from tools.base import Tool
+from tools.credit import get_user_credit
 from tools.order import get_order
 from tools.refund import check_refund, create_refund
 from tools.risk import risk_check
@@ -36,6 +38,13 @@ tools = {
         user_id=str,
         output_type=UserHistory,
     ),
+    "get_user_credit": Tool(
+        name="get_user_credit",
+        description="get user credits",
+        func=get_user_credit,
+        user_id=str,
+        output_type=CreditScore,
+    ),
     "risk_check": Tool(
         name="risk_check",
         description="check whether order has risk",
@@ -44,6 +53,7 @@ tools = {
             "order": OrderSummary,
             "user": UserProfile,
             "history": UserHistory,
+            "credit": CreditScore,
         },
         output_type=RiskResult,
     ),
