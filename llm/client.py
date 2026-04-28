@@ -13,35 +13,30 @@ client = OpenAI(
 
 
 # 2. call llm
-def call_llm(query: str, tool_schemas: list) -> list:
+def call_llm(query: str, tool_schemas: list):
     prompt = f'''
-    你是一个AI助手，可以根据用户问题选择合适的工具, 并提取必要参数。
+    你是一个AI助手，负责理解用户意图, 并提取必要参数。
 
     用户问题:
     {query}
     
-    可用工具:
-    {tool_schemas}
-    
     任务: 
-    1. 选择正确的工具
-    2. 从用户问题中提取参数 (尤其是 order_id)
+    1. 判断用户的意图 (intent)
+    2. 提取必要参数 (例如 order_id)
+    
+    可用意图 (intent):
+    - risk_check (判断订单风险)
+    - check_refund (查询是否可退款)
+    - get_shipping_status (查询物流) 
     
     规则: 
-    - order_id 一定要从用户问题中提取
-    - 例如: 
-        - "订单123" → order_id = "123"
-        - "查询订单456状态" → order_id = "456"
+    - intent 必须从上面列表中选择一个
+    - order_id 如果存在, 必须提取
     - 不允许遗漏关键参数
     
     输出要求：
-    1. 只返回JSON
-    格式如下：
-    {{
-      "steps": [
-        {{"tool": "tool_name", "args": {...}}}
-      ]
-    }}
+    1. 只返回JSON, 格式如下：
+    {{"intent": "intent_name", "args": {{"order_id": "123"}}}}    
     '''
 
     response = client.chat.completions.create(
@@ -50,10 +45,7 @@ def call_llm(query: str, tool_schemas: list) -> list:
         temperature=0
     )
 
-    content = response.choices[0].message.content
-
-
-    return content
+    return response.choices[0].message.content
 
 
 # 3. call llm with retry
@@ -62,16 +54,18 @@ def call_llm_with_retry(query: str, tool_schemas: list, error_message):
                 用户问题:
                 {query}
                 
-                可用工具:
-                {tool_schemas}
-                
                 你的错误是: 
                 {error_message}
-                
+                        
                 请修正以下问题:  
-                - 确保所有必要参数都被正确提取 (如 order_id)
-                - 不允许 args 为空
-                - 必须返回合法 json
+                1. intent 必须是以下之一: 
+                - risk_check
+                - check_refund
+                - get_shipping_status
+                
+                2. 必须提取必要参数 (如 order_id)
+                3. 必须返回合法 json, 格式如下:
+                {{"intent": "intent_name", "args": {{"order_id": "123"}}}}
             '''
 
     response = client.chat.completions.create(
@@ -80,7 +74,6 @@ def call_llm_with_retry(query: str, tool_schemas: list, error_message):
         temperature=0
     )
 
-    content = response.choices[0].message.content
-    return content
+    return response.choices[0].message.content
 
 

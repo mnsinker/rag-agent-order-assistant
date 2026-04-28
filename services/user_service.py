@@ -1,9 +1,9 @@
 from errors.validation import ValidationError
-from models.user import UserProfile
-from models.user_history import UserHistory, OrderRecord
+from domain.dtos.user_profile_dto import UserProfileDTO
+from domain.dtos.user_history_dto import UserHistoryDTO, OrderRecordDTO
 
 
-def get_user_profile(user_id: str) -> UserProfile:
+def get_user_profile(user_id: str) -> UserProfileDTO:
         users = {
             "u1": {"level": "vip"},
             "u2": {"level": "normal"}
@@ -11,11 +11,11 @@ def get_user_profile(user_id: str) -> UserProfile:
 
         user = users.get(user_id)
         if not user:
-            return UserProfile(user_id, "normal")
-        return UserProfile(user_id, user["level"])
+            return UserProfileDTO(user_id, "normal")
+        return UserProfileDTO(user_id, user["level"])
 
 
-def get_user_history_service(user_id: str) -> UserHistory:
+def get_user_history_service(user_id: str) -> UserHistoryDTO:
     fake_db = {
         "u1": [
                 {"order_id": "o1", "amount": 100},
@@ -27,7 +27,7 @@ def get_user_history_service(user_id: str) -> UserHistory:
 
     if rows is None:
         raise ValidationError(f'user {user_id} not found')
-    return UserHistory(
+    return UserHistoryDTO(
         user_id=user_id,
-        orders=[OrderRecord(order_id=r['order_id'], amount=r['amount']) for r in rows]
+        orders=[OrderRecordDTO(order_id=r['order_id'], amount=r['amount']) for r in rows]
     )

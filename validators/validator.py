@@ -1,99 +1,88 @@
 from errors.validation import ValidationError
 from tools.base import Tool
-from tools.registry import tools
-from .resolver import resolve_tool
-from dataclasses import dataclass
 
-def validate_structure(tool_call: dict):
+
+def validate_structure(intent_call: dict):
     '''
     validate:
-    output层
-    1. llm_output: 是个dict
-    2. steps: 有"steps"字样
-    3. steps: 是个list
-
-    每个step层:
-    1. 是个dict
-    2. 有'tool'字样
-    3. 有'args'字样
-    4. args 是个dict
-
-    注: 后续系统注入的dep_step的校验: 略
+        1. intent_call:
+            是个dict
+        2. intent:
+            有"intent"字样
+            type = str
+        3. args:
+            有 "args" 字样
+            type = dict
+    return:
+        None (合法)
+        str (错误信息, 当 raise_error=False 时)
     '''
-    # 1. 检查 整个dict 是否存在
-    if not tool_call:
-        raise ValidationError('LLM output is empty')
-    # 2. 检查 "steps" 字样在不在
-    if 'steps' not in tool_call:
-        raise ValidationError("'steps' is missing")
-    # 3. 检查 "steps" 是不是个list
-    if not isinstance(tool_call["steps"], list):
-        raise ValidationError("'steps' must be a LIST")
+    # 1.1 检查 整个intent_call 是否存在
+    if not intent_call:
+        return "LLM output is empty"
+    # 1.2 检查 intent_call 是否为dict
+    if not isinstance(intent_call, dict):
+        return "LLM output should be a dict"
 
-    for step in tool_call["steps"]:
-        # 4. 检查 每个step 是不是个dict
-        if not isinstance(step, dict):
-            raise ValidationError("each step must be a dict")
-        # 5. 检查 每个dict 里面是不是有 "tool" 字样
-        if 'tool' not in step:
-            raise ValidationError("'tool' is missing")
-        # 6. 检查 每个dict 里面是不是有 "args" 字样
-        if 'args' not in step:
-            raise ValidationError("'args' is missing")
-        # 7. 检查 每个args 是不是个dict
-        if not isinstance(step['args'], dict):
-            raise ValidationError("'args' must be a dict")
+    # 2.1 检查 "intent" 字样在不在
+    if "intent" not in intent_call:
+        return "'intent' is missing"
+    # 2.2 检查 intent 是否为str
+    if not isinstance(intent_call["intent"], str):
+        return "'intent' should be a str"
 
+    args = intent_call["args"]
+    # 3.1 检查 "args" 字样在不在
+    if args is None:
+        return "'args' is missing"
+    # 3.2 args 必须是个dict
+    if not isinstance(args, dict):
+        return "args should be dict"
 
-def validate_tool_exists(step_tool: str):
-    resolved_tool = resolve_tool(step_tool)
-    if not resolved_tool:
-        raise ValidationError(f"tool {step_tool} does not exist")
-    return resolved_tool
+    return None
 
 
-def validate_args_from_llm(resolved_tool: Tool, step_args: dict):
+
+
+def validate_args_from_llm(tool: Tool, step_args: dict):
     '''
-    validate llm_args
+    validate args
     1. arg_key: 不允许多
     2. arg_value: 不能是dataclass (LLM 不准提供 dataclass)
     '''
-    # 1. 检查 args_key 是否多了 ((step_args > tool_obj.llm_args)
-    for arg in step_args:
-        if arg not in resolved_tool.llm_args:
-            raise ValidationError(f"[{resolved_tool.name}] unexpected arg: {arg}")
+    # 1. 检查 args_key 是否多了 (step_args > tool_obj.args)
+    extra_args = set(step_args) - set(tool.args)
+    if extra_args:
+        raise ValidationError(f"[{tool.name}] got unexpected arg: {extra_args}")
 
-    # 2. 检查 args_value 是否有 dataclass
-    for dep_name, dep_type in resolved_tool.dependency_args.items():
-        if dep_name in step_args:
-            raise ValidationError(f"{dep_name} should not be provided by LLM")
+    # 2. 检查 arg_value 必须是 primitive args (白名单)
+    for arg_name, arg_value in step_args.items():
+        if not isinstance(arg_value, (str, int, float, bool, type(None))):
+            raise ValidationError(f"{tool.name} arg '{arg_name}' should be primitive, but got {type(arg_value)}")
 
 
 def validate_params(resolved_tool: Tool, params: dict):
     '''
-    检查:
+    只检查 primitive_args (系统 plan_from_ontology() 已保证 dep_args):
     1. arg_key 是否多了
     2. arg_key 是否少了
     3. arg_value 是否为空
     4. arg_value 是否type正确
     '''
-    args = {} # args = 应该有什么
-    args.update(resolved_tool.llm_args)
-    args.update(resolved_tool.dependency_args)
+    required_args = resolved_tool.args # 只校验 primitive_args
+    # 1. 检查 arg_key 是否少了 ①
+    extra_args = set(params) - set(required_args)
+    if extra_args:
+        raise ValidationError(f"[{resolved_tool.name}] got unexpected args: {extra_args}")
 
-    for dep_name, dep_type in args.items():
-        # 1.检查 arg_key 是否少了
-        if dep_name not in params:
-            raise ValidationError(f"missing param {dep_name}")
-        # 2.检查 arg_value 是否为None
-        if params[dep_name] is None:
-            raise ValidationError(f"param {dep_name}: value is None")
-        # 3.检查 arg_type 是否不对
-        if not isinstance(params[dep_name], dep_type):
-            raise ValidationError(f"param {dep_name} expected {dep_type.__name__}, but got {type(params[dep_name]).__name__}")
-
-
-    for param_name, param_type in params.items():
-        # 4.检查 arg_key 是否多了
-        if param_name not in args:
-            raise ValidationError(f"unexpected param {param_name}")
+    for arg_name, arg_type in required_args.items():
+        # 2.检查 arg_key 是否少了
+        if arg_name not in params:
+            raise ValidationError(f"[{resolved_tool.name}] missing param '{arg_name}'")
+        # 3.检查 arg_value 是否为None
+        param_value = params[arg_name]
+        if param_value is None:
+            raise ValidationError(f"[{resolved_tool.name}] param '{arg_name}': value is None")
+        # 4.检查 arg_type 是否不对
+        if not isinstance(param_value, arg_type):
+            raise ValidationError(f"[{resolved_tool.name}] param '{arg_name}' expected {arg_type.__name__}, but got {type(param_value).__name__}")

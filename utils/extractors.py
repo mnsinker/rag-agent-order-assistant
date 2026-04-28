@@ -1,8 +1,8 @@
-import regex as re
+import re
 
 def extract_order_id(query: str) -> str | None:
-    match = re.search(r'\d{3,10}', query)
-    return match.group() if match else None
+    matches = re.findall(r'\d+', query)
+    return matches[0] if matches else None
 
 
 extractors = {

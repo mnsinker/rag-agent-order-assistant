@@ -1,6 +1,6 @@
 from errors.validation import ValidationError
-from models.order import OrderSummary
-def get_order_summary(order_id: str) -> OrderSummary | None:
+from domain.dtos.order_summary_dto import OrderSummaryDTO
+def get_order_summary(order_id: str) -> OrderSummaryDTO | None:
     order = {
         "123": {"user": "u1", "days": 3, "shipped": True, "custom": False, "amount": 1000.00},
         "456": {"user": "u2", "days": 4, "shipped": False, "custom": False, "amount": 800.00},
@@ -12,7 +12,7 @@ def get_order_summary(order_id: str) -> OrderSummary | None:
     if data is None:
         raise ValidationError(f"order {order_id} not found")
 
-    return OrderSummary(order_id,
+    return OrderSummaryDTO(order_id,
                         data.get("user"),
                         data.get("days"),
                         data.get("shipped"),
