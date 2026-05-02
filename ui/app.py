@@ -1,39 +1,3 @@
-# import sys
-# from pathlib import Path
-#
-# ROOT_DIR = Path(__file__).resolve().parents[1]
-# if str(ROOT_DIR) not in sys.path:
-#     sys.path.insert(0, str(ROOT_DIR))
-#
-# from agent.agent import agent
-# from audit.audit_logger import AuditLogger
-# import streamlit as st
-#
-#
-# st.set_page_config(page_title="AI Order Agent", layout="centered")
-# st.title("🧠 AI Order Decision System")
-#
-# # user query
-# query = st.text_input("请输入问题: ", "帮我判断订单123有没有风险")
-#
-# # show audit
-# show_audit = st.checkbox("显示执行过程 (audit)")
-#
-# if st.button("执行"):
-#
-#     audit = AuditLogger(enabled=show_audit) # 开启 audit (每次新建, 避免污染)
-#     result = agent(query, audit)            # 把 audit 注入 agent
-#
-#     st.subheader("📊 结果")
-#     st.write(result["data"])
-#
-#     if show_audit:
-#         st.subheader("🔍 执行过程")
-#         for log in audit.get_logs():
-#             st.json(log)
-#
-
-
 import sys
 from pathlib import Path
 import streamlit as st

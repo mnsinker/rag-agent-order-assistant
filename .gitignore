@@ -5,8 +5,10 @@ __pycache__/
 # Env
 .env
 .venv/
-env/
-venv/
+
+
+# Streamlit secrets
+.streamlit/secrets.toml
 
 # IDE
 .idea/
