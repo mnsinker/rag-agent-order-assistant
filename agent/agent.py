@@ -14,12 +14,14 @@ from tools.resolver import resolve_tool
 from utils.arg_utils import build_args
 from validators.validator import validate_params, validate_structure
 from llm.responder import generate_final_result
-audit = AuditLogger()
 
 
-def decide_with_retry(query: str, tool_schemas: list, max_retry: int=1) -> dict | None:
+
+def decide_with_retry(query: str, tool_schemas: list, max_retry: int=1, audit=None) -> dict | None:
+    if audit is None:
+        audit = AuditLogger(enabled=False)
+
     error_message = None
-
     for i in range(max_retry):
         if error_message:
             llm_raw = call_llm_with_retry(query, tool_schemas, error_message)
@@ -36,10 +38,12 @@ def decide_with_retry(query: str, tool_schemas: list, max_retry: int=1) -> dict 
     return None
 
 
-def agent(query: str) -> dict:
+def agent(query: str, audit=None) -> dict:
+    if audit is None:
+        audit = AuditLogger(enabled=False)
     # 0. 取第1个tool (因为目前是 single-intent system)
     tool_schemas: list = get_all_tool_schemas()
-    intent_call = decide_with_retry(query, tool_schemas, max_retry=2)
+    intent_call = decide_with_retry(query, tool_schemas, max_retry=2, audit=audit)
     if not intent_call:
         return make_response(False, None, "LLM planning failed")
 
@@ -72,22 +76,24 @@ def agent(query: str) -> dict:
                 tool_results.append(result)
                 audit.log(step="after_tool", tool=tool.name, output=result)
 
+        # 3️⃣ FINAL ANSWER
+        final_answer = generate_final_result(query, tool_results)
+        audit.log(step="final_answer", input={"query": query, "tool_results": tool_results}, output=final_answer)
+        return make_response(success=True, data=final_answer)
+
     except (ExecutionError, ValidationError) as e:
         audit.log(step="error", error=str(e))
         return make_response(False, None, str(e))
 
-    # 3️⃣ final answer
-    final_answer = generate_final_result(query, tool_results)
-    audit.log(step="final_answer", input={"query": query, "tool_results": tool_results}, output=final_answer)
-    return make_response(True, final_answer)
+    finally:
+        audit.dump()
 
 
-# ==== 测试 ======
-response = agent('帮我判断订单123有没有风险')
-print('response: ', response)
 
-# ===== 打印 audit ========
+# ======= 测试 =======
+if __name__ == '__main__':
+    audit = AuditLogger(enabled=True)
+    response = agent('订单456是否可以apply coupon?', audit)
+    print(response)
 
-for log in audit.get_logs():
-    print(log)
 

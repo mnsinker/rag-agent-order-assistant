@@ -1,24 +1,28 @@
-from planner.dto_to_entity import DTO_TO_ENTITY
+from domain.entities.base import Entity
 
-def get_existing_entities(tool_results: list) -> set:
+def get_existing_entities(tool_results: list) -> set[type[Entity]]:
     entities = set()
     for r in tool_results:
-        entity = DTO_TO_ENTITY.get(type(r))
+        entity = getattr(r, "entity", None)
+
+        if entity is None:
+            raise ValueError(f"{type(r).__name__} missing 'entity' attribute")
+
         entities.add(entity)
     return entities
 
 
 def plan_tools(
-        target_entities: list[str],
-        existing_entities: set,
-        entity_to_deps: dict,
-        entity_to_tools: dict
+        target_entities: list[type[Entity]],
+        existing_entities: set[type[Entity]],
+        entity_to_deps: dict[type[Entity], list[type[Entity]]],
+        entity_to_tools: dict[type[Entity], list[str]],
 ) -> list[str]:
 
-    '''
+    """
     输入: target entities
     输出: 对应的 tools
-    '''
+    """
 
     path = set()
     done = set()

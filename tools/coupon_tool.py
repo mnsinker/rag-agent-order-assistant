@@ -1,6 +1,13 @@
-from domain.dtos.coupon_dto import CouponEligibilityDTO
+from domain.dtos.coupon_dto import CouponDecisionDTO, CouponEligibilityDTO
 from domain.dtos.order_summary_dto import OrderSummaryDTO
 from domain.dtos.user_profile_dto import UserProfileDTO
+from policies.coupon_policy import evaluate_coupon_policy
+
+
+
+def decide_coupon(order: OrderSummaryDTO, user: UserProfileDTO) -> CouponDecisionDTO:
+    return evaluate_coupon_policy(order, user)
+
 
 
 def check_coupon(order: OrderSummaryDTO, user: UserProfileDTO) -> CouponEligibilityDTO:
@@ -14,7 +21,3 @@ def check_coupon(order: OrderSummaryDTO, user: UserProfileDTO) -> CouponEligibil
 
 
 
-def apply_coupon(coupon_elig: CouponEligibilityDTO):
-    if not coupon_elig.applicable:
-        return "coupon not applied"
-    return "coupon applied successfully"

@@ -1,5 +1,6 @@
 from errors.validation import ValidationError
 from domain.dtos.order_summary_dto import OrderSummaryDTO
+
 def get_order_summary(order_id: str) -> OrderSummaryDTO | None:
     order = {
         "123": {"user": "u1", "days": 3, "shipped": True, "custom": False, "amount": 1000.00},

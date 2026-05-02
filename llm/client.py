@@ -28,6 +28,7 @@ def call_llm(query: str, tool_schemas: list):
     - risk_check (判断订单风险)
     - check_refund (查询是否可退款)
     - get_shipping_status (查询物流) 
+    - decide_coupon (判断是否可发优惠券)
     
     规则: 
     - intent 必须从上面列表中选择一个

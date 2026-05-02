@@ -12,4 +12,5 @@ INTENT_TO_ENTITIES = {
 
     "check_coupon": [Coupon],
     "apply_coupon": [Coupon],
+    "decide_coupon": [Coupon],
 }

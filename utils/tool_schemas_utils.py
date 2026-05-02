@@ -1,4 +1,6 @@
 from tools.registry import tools
+
+
 def get_all_tool_schemas() -> list:
     tool_schemas = []
 
@@ -6,6 +8,7 @@ def get_all_tool_schemas() -> list:
         schema = tool.to_schema()
         tool_schemas.append(schema)
     return tool_schemas
+
 
 
 ''' 想要的效果: 

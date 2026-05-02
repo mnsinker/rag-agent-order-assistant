@@ -20,16 +20,24 @@ class AuditLogger:
         "error"
     }
 
-    def __init__(self):
+    def __init__(self, enabled:bool = False):
+        self.enabled = enabled
         self.logs = []
 
     def log(self, step: str, **kwargs):
         if step not in self.STEPS_ALLOWED:
             print(f'[AUDIT WARNING] invalid step: {step}')
             return
+        if self.enabled:
+            self.logs.append({"step": step, **kwargs})
 
-        self.logs.append({"step": step, **kwargs})
 
     def get_logs(self):
         return self.logs
+
+    def dump(self):
+        if self.enabled:
+            for log in self.logs:
+                print(log)
+
 

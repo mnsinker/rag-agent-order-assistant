@@ -1,4 +1,5 @@
 from errors.base import ToolError
+from tools.schema import derive_tool_schema
 from utils.to_json_type import to_json_type
 from errors.validation import ValidationError
 from errors.tool import ExecutionError
@@ -29,11 +30,23 @@ class Tool:
             raise ExecutionError(str(e))
 
     def to_schema(self):
-        response = {'name': self.name, 'description': self.description}
-        response['parameters'] = {}
-        response['parameters']['type'] = 'object'
-        response['parameters']['properties'] = {
-            required_arg: {"type": to_json_type(required_type)} for required_arg, required_type in self.args.items()
+        schema = derive_tool_schema(self.func)
+        properties = {}
+        required = []
+
+        for name, meta in schema['requires'].items():
+            dto = meta["dto"]
+
+            if dto in (str, int, float, bool): # 只保留 primitive 给 llm
+                properties[name] = {"type": to_json_type(dto)}
+                required.append(name)
+
+        return {
+            "name": self.name,
+            "description": self.description,
+            "parameters": {
+                "type": "object",
+                "properties": properties,
+                "required": required,
+            }
         }
-        response['parameters']['required'] = list(self.args.keys())
-        return response

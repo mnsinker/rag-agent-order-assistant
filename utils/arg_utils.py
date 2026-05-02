@@ -1,5 +1,8 @@
+from typing import get_type_hints
+
 from errors.validation import ValidationError
 from tools.base import Tool
+from tools.coupon_tool import check_coupon
 from utils.extractors import extract_order_id
 
 def build_args(tool: Tool, intent_args: dict) -> dict:
@@ -48,3 +51,17 @@ def build_params(
                     params[req_name] = extracted
 
     return params
+
+
+def extract_args_from_signature(func) -> dict:
+    hints = get_type_hints(func)
+
+    requires = {}
+    for name, typ in hints.items():
+        if name == 'return':
+            continue
+        requires.update({name: typ})
+
+    return requires
+
+

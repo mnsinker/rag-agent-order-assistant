@@ -1,7 +1,7 @@
 from services.order_service import get_order_summary
 from domain.dtos.shipping_dto import ShippingResultDTO
 from errors.validation import ValidationError
-def get_shipping_status(order_id: str):
+def get_shipping_status(order_id: str) -> ShippingResultDTO:
     # 1. 获取订单数据
     order_summary = get_order_summary(order_id) # 这里返回是 OrderSummary 对象
 
