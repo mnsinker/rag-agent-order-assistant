@@ -1,4 +1,4 @@
-import regex as re
+import re
 import json
 
 def safe_parse_llm_output(content: str) -> dict | None:
