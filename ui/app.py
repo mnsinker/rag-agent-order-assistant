@@ -10,6 +10,32 @@ if str(ROOT_DIR) not in sys.path:
 from agent.agent import agent
 from audit.audit_logger import AuditLogger
 
+
+def render_audit_timeline(logs):
+    if not isinstance(logs, list):
+        st.warning("audit_logs 格式不正确")
+        return
+
+    for i, log in enumerate(logs, start=1):
+        step = log.get("step", "unknown")
+
+        if step == "llm_raw":
+            title = "LLM Intent Parsing"
+        elif step == "before_tool":
+            title = f"Run Tool:  {log.get('tool')}"
+        elif step == "after_tool":
+            title = f"Tool Result:  {log.get('tool')}"
+        elif step == "final_answer":
+            title = "Generate Final Answer"
+        elif step == "error":
+            title = "Error"
+        else:
+            title = step
+
+        with st.expander(f"{i}. {title}", expanded=False):
+            st.json(log)
+
+
 # --- 页面配置 ---
 st.set_page_config(page_title="AI Order Agent", layout="centered")
 st.title("🧠 AI Order Decision System")
@@ -34,8 +60,7 @@ for message in st.session_state.messages:
         # 修复点：只要这条历史消息里存了 logs，就显示详情，不随左侧勾选框改变而消失
         if message.get("audit_logs"):
             with st.expander("🔍 查看执行详情"):
-                for log in message["audit_logs"]:
-                    st.json(log)
+                render_audit_timeline(message["audit_logs"])
 
 # --- 聊天输入框 ---
 if prompt := st.chat_input("帮我判断订单123有没有风险"):
@@ -61,10 +86,10 @@ if prompt := st.chat_input("帮我判断订单123有没有风险"):
 
                 # 实时渲染日志到 status 内部
                 if show_audit and current_logs:
-                    for log in current_logs:
-                        st.json(log)
+                    render_audit_timeline(current_logs)
 
                 status.update(label="处理完成!", state="complete", expanded=False)
+
             except Exception as e:
                 status.update(label="运行出错", state="error")
                 st.error(f"错误: {e}")

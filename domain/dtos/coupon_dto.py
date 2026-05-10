@@ -1,14 +1,15 @@
 from dataclasses import dataclass
 from typing import ClassVar, Type
-from domain.entities.base import Entity
-from domain.entities.coupon import Coupon
+
+from domain.nodes.base import Node
+from domain.nodes.coupon import CouponEligibility, CouponDecision
 
 
 @dataclass
 class CouponEligibilityDTO:
     applicable: bool
     reason: str
-    entity: ClassVar[Type[Entity]] = Coupon
+    node: ClassVar[Type[Node]] = CouponEligibility
 
 @dataclass
 class CouponDecisionDTO:
@@ -17,4 +18,4 @@ class CouponDecisionDTO:
     amount: int         # 10, 20, etc
     reason: str
     policy_rule: str
-    entity: ClassVar[Type[Entity]] = Coupon
+    node: ClassVar[Type[Node]] = CouponDecision

@@ -1,12 +1,13 @@
 from dataclasses import dataclass
 from typing import ClassVar, Type
-from domain.entities.base import Entity
-from domain.entities.user import User
+
+from domain.nodes.base import Node
+from domain.nodes.user import UserProfile
 
 
 @dataclass
 class UserProfileDTO: # Model
     user_id: str
     level: str  # normal / vip ...
-    entity: ClassVar[Type[Entity]] = User
+    node: ClassVar[Type[Node]] = UserProfile
 

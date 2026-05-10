@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import ClassVar, Type
-from domain.entities.base import Entity
-from domain.entities.risk import Risk
+
+from domain.nodes.base import Node
+from domain.nodes.risk import RiskResult
 
 
 @dataclass
@@ -11,4 +12,4 @@ class RiskResultDTO:
     risk_score: int
     reason: str
     policy_rule: str
-    entity: ClassVar[Type[Entity]] = Risk
+    node: ClassVar[Type[Node]] = RiskResult

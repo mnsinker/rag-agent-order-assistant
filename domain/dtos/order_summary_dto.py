@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import ClassVar, Type
-from domain.entities.base import Entity
-from domain.entities.order import Order
+from domain.nodes.base import Node
+from domain.nodes.order import OrderSummary
 
 
 @dataclass
@@ -12,5 +12,5 @@ class OrderSummaryDTO:
     shipped: bool
     custom: bool
     amount: int
-    entity: ClassVar[Type[Entity]] = Order
+    node: ClassVar[Type[Node]] = OrderSummary
 

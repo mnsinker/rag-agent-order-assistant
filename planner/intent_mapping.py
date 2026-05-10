@@ -1,16 +1,17 @@
-from domain.entities.order import Order
-from domain.entities.risk import Risk
-from domain.entities.coupon import Coupon
+from domain.nodes.order import ShippingStatus
+from domain.nodes.refund import RefundDecision, RefundExecution
+from domain.nodes.risk import RiskResult
+from domain.nodes.coupon import CouponDecision, CouponEligibility
 
-INTENT_TO_ENTITIES = {
-    "risk_check": [Risk],
+INTENT_TO_NODES = {
+    "risk_check": [RiskResult],
 
-    "check_refund": [Order],
-    "create_refund": [Order],
+    "check_refund": [RefundDecision],
+    "create_refund": [RefundExecution],
 
-    "get_shipping_status": [Order],
+    "get_shipping_status": [ShippingStatus],
 
-    "check_coupon": [Coupon],
-    "apply_coupon": [Coupon],
-    "decide_coupon": [Coupon],
+    "check_coupon": [CouponEligibility],
+    "apply_coupon": [CouponDecision],
+    "decide_coupon": [CouponDecision],
 }

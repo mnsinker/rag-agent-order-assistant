@@ -3,13 +3,17 @@ from tools.schema import derive_tool_schema
 from utils.to_json_type import to_json_type
 from errors.validation import ValidationError
 from errors.tool import ExecutionError
+from utils.type_utils import is_primitive
+
 
 class Tool:
     def __init__(self, name, description, func, **kwargs):
         self.name = name
         self.description = description
         self.func = func
-        self.args = kwargs # 创建tool_obj时, 定义所需的参数
+        schema = derive_tool_schema(func)
+        self.args = {arg_name: meta["dto"] for arg_name, meta in schema['requires'].items()}
+
     def run(self, **param): # 调方法时, agent传入的参数
         # 1. validate params' data type
         for required_arg, required_type in self.args.items():
@@ -37,7 +41,7 @@ class Tool:
         for name, meta in schema['requires'].items():
             dto = meta["dto"]
 
-            if dto in (str, int, float, bool): # 只保留 primitive 给 llm
+            if is_primitive(dto): # 只保留 primitive 给 llm
                 properties[name] = {"type": to_json_type(dto)}
                 required.append(name)
 

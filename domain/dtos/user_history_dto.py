@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from typing import ClassVar, Type
 from domain.dtos.order_record_dto import OrderRecordDTO
-from domain.entities.base import Entity
-from domain.entities.user import User
+from domain.nodes.base import Node
+from domain.nodes.user import UserHistory
 
 
 @dataclass
 class UserHistoryDTO:
     user_id: str
     orders: list[OrderRecordDTO]
-    entity: ClassVar[Type[Entity]] = User
+    node: ClassVar[Type[Node]] = UserHistory

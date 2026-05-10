@@ -1,7 +1,9 @@
-def print_graph(entity_to_deps):
+
+def print_graph(node_to_deps):
     print("\n=======TOOL GRAPH======")
 
-    for entity, deps in entity_to_deps.items():
+    for node, deps in node_to_deps.items():
         dep_names = [d.__name__ for d in deps]
-        print(f'{dep_names} → {entity.__name__}')
+        category = getattr(getattr(node, "meta", None), "category", "unknown")
+        print(f'{dep_names} → {node.__name__} [{category}]')
 

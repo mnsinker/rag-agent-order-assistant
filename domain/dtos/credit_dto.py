@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import ClassVar, Type
 
-from domain.entities.base import Entity
-from domain.entities.credit import Credit
+from domain.nodes.base import Node
+from domain.nodes.credit import CreditScore
 
 
 @dataclass
 class CreditScoreDTO:
     score: int
-    entity: ClassVar[Type[Entity]] = Credit
+    node: ClassVar[Type[Node]] = CreditScore

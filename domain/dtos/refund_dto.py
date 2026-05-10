@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import ClassVar, Type
-from domain.entities.base import Entity
-from domain.entities.refund import Refund
+
+from domain.nodes.base import Node
+from domain.nodes.refund import RefundDecision, RefundExecution
 
 
 @dataclass
@@ -9,7 +10,7 @@ class RefundDecisionDTO:
     allowed: bool
     reason: str
     policy_rule: str
-    entity: ClassVar[Type[Entity]] = Refund
+    node: ClassVar[Type[Node]] = RefundDecision
 
 
 
@@ -18,7 +19,7 @@ class RefundExecutionResultDTO:
     success: bool
     message: str
     refund_id: str
-    entity: ClassVar[Type[Entity]] = Refund
+    node: ClassVar[Type[Node]] = RefundExecution
 
 
 

@@ -1,14 +1,17 @@
 # Python
 __pycache__/
 *.pyc
+.pytest_cache
 
 # Env
 .env
 .venv/
+venv/
 
 
 # Streamlit secrets
 .streamlit/secrets.toml
+streamlit/secrets.toml
 
 # IDE
 .idea/

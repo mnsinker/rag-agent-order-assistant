@@ -3,8 +3,8 @@ from errors.validation import ValidationError
 from llm.client import call_llm_with_retry, call_llm
 from planner.planner import plan_tools
 from planner.graph_registry import get_graph
-from planner.planner import get_existing_entities
-from planner.intent_mapping import INTENT_TO_ENTITIES
+from planner.planner import plan_tools, get_existing_nodes
+from planner.intent_mapping import INTENT_TO_NODES
 from utils.arg_utils import build_params
 from utils.make_response import make_response
 from utils.tool_schemas_utils import get_all_tool_schemas
@@ -52,15 +52,15 @@ def agent(query: str, audit=None) -> dict:
         intent = intent_call["intent"]  # [WARNING] 只取第1个step, multi-step ignored
         intent_args = intent_call["args"]
 
-        if intent not in INTENT_TO_ENTITIES:
+        if intent not in INTENT_TO_NODES:
             raise ValidationError(f"unknown intent: {intent}")
 
         # 1️⃣ PLANNING
         tool_results = []
-        target_entities = INTENT_TO_ENTITIES[intent]
-        existing_entities = get_existing_entities(tool_results)
-        edges, entity_to_tools = get_graph()
-        planned_tools = plan_tools(target_entities, existing_entities, edges, entity_to_tools)
+        target_entities = INTENT_TO_NODES[intent]
+        existing_entities = get_existing_nodes(tool_results)
+        node_to_deps, node_to_tools = get_graph()
+        planned_tools = plan_tools(target_entities, existing_entities, node_to_deps, node_to_tools)
         steps = [{"tool": t, "args": {}} for t in planned_tools]
 
         # 2️⃣ EXECUTION (三段式)
