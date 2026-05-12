@@ -1,7 +1,6 @@
 from audit.audit_logger import AuditLogger
 from errors.validation import ValidationError
 from llm.client import call_llm_with_retry, call_llm
-from planner.planner import plan_tools
 from planner.graph_registry import get_graph
 from planner.planner import plan_tools, get_existing_nodes
 from planner.intent_mapping import INTENT_TO_NODES
@@ -47,6 +46,8 @@ def agent(query: str, audit=None) -> dict:
     if not intent_call:
         return make_response(False, None, "LLM planning failed")
 
+    tool_results = []
+    planned_tools = []
     try:
         # 0️⃣ 检查 tool_call 的结构 (是否符合contract)
         intent = intent_call["intent"]  # [WARNING] 只取第1个step, multi-step ignored
@@ -56,7 +57,7 @@ def agent(query: str, audit=None) -> dict:
             raise ValidationError(f"unknown intent: {intent}")
 
         # 1️⃣ PLANNING
-        tool_results = []
+
         target_entities = INTENT_TO_NODES[intent]
         existing_entities = get_existing_nodes(tool_results)
         node_to_deps, node_to_tools = get_graph()
@@ -79,12 +80,25 @@ def agent(query: str, audit=None) -> dict:
         # 3️⃣ FINAL ANSWER
         final_answer = generate_final_result(query, tool_results)
         audit.log(step="final_answer", input={"query": query, "tool_results": tool_results}, output=final_answer)
-        return make_response(success=True, data=final_answer)
+        return {
+            "response": make_response(success=True, data=final_answer),
+            "trace": {
+                "planned_tools": planned_tools,
+                "tool_results": tool_results,
+                "audit_logs": audit.get_logs(),
+            }
+        }
 
     except (ExecutionError, ValidationError) as e:
         audit.log(step="error", error=str(e))
-        return make_response(False, None, str(e))
-
+        return {
+            "response": make_response(False, None, str(e)),
+            "trace": {
+                "planned_tools": planned_tools,
+                "tool_results": tool_results,
+                "audit": audit.get_logs(),
+            }
+        }
     finally:
         audit.dump()
 
@@ -93,7 +107,7 @@ def agent(query: str, audit=None) -> dict:
 # ======= 测试 =======
 if __name__ == '__main__':
     audit = AuditLogger(enabled=True)
-    response = agent('订单456是否可以apply coupon?', audit)
-    print(response)
+    answer = agent('订单456是否可以apply coupon?', audit)
+    print(answer)
 
 

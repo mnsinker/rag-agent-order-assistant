@@ -12,7 +12,7 @@ class Tool:
         self.description = description
         self.func = func
         schema = derive_tool_schema(func)
-        self.args = {arg_name: meta["dto"] for arg_name, meta in schema['requires'].items()}
+        self.args = {arg_name: arg_info["dto"] for arg_name, arg_info in schema['requires'].items()}
 
     def run(self, **param): # 调方法时, agent传入的参数
         # 1. validate params' data type

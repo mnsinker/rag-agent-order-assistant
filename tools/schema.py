@@ -56,3 +56,27 @@ def derive_tool_schema(func) -> dict:
     }
 
 
+"""
+例子: 
+def decide_coupon(order: OrderSummaryDTO, user: UserProfileDTO) -> CouponDecisionDTO:
+
+被推导为: 
+{
+    "tool": "decide_coupon",
+    "requires": {
+        "order": {
+            "dto": OrderSummaryDTO,
+            "node": OrderSummary
+        },
+        "user": {
+            "dto": UserProfileDTO,
+            "node": UserProfile
+        }
+    },
+    "provides": {
+        "dto": CouponDecisionDTO,
+        "node": CouponDecision
+    }
+}
+
+"""
